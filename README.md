@@ -34,14 +34,3 @@ Latency over Logic: I chose the Flash model because for a hungry user, a 2-secon
 Prompt Guardrails: Engineered system instructions to ensure the AI never suggests long-drawn processes like "slow-cooking" or "overnight marination."
 
 Frictionless UX: By using Computer Vision, I removed the need for users to type out long lists of ingredients.
-
-💻 How to Run Locally
-Clone the Repo: git clone https://github.com/your-username/bitebot-ai.git
-
-Install Libraries: pip install streamlit google-generativeai Pillow
-
-Add API Key: Create a .streamlit/secrets.toml file and add: GEMINI_API_KEY = "your_key_here"
-
-Launch: streamlit run bitebot.py
-
-Made with ❤️ for Food x AI — Abhinav
