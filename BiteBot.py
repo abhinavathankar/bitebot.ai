@@ -11,8 +11,26 @@ except Exception:
     st.error("Missing GEMINI_API_KEY! Add it to Streamlit Cloud Secrets.")
     st.stop()
 
-# Select Model (Using Flash for speed and good JSON handling)
-model = genai.GenerativeModel('gemini-1.5-flash')
+# --- ROBUST MODEL SELECTION (RESTORED) ---
+# We try Gemini 3 Flash Preview first. If not found, we fallback to 2.5 Flash.
+AVAILABLE_MODELS = ['gemini-3-flash-preview', 'gemini-2.5-flash', 'gemini-1.5-flash']
+model = None
+current_engine = ""
+
+for model_name in AVAILABLE_MODELS:
+    try:
+        test_model = genai.GenerativeModel(model_name)
+        # Quick test call to verify availability
+        test_model.count_tokens("test") 
+        model = test_model
+        current_engine = model_name
+        break
+    except Exception:
+        continue
+
+if not model:
+    st.error(f"No compatible Gemini models found (Tried: {AVAILABLE_MODELS}). Check your API quota/region.")
+    st.stop()
 
 # --- 2. UI STYLING ---
 st.set_page_config(page_title="BiteBot.ai", page_icon="🍔")
@@ -35,6 +53,7 @@ st.markdown(f"""
     """, unsafe_allow_html=True)
 
 st.markdown("<h1 class='main-title'>🍔 BiteBot.ai</h1>", unsafe_allow_html=True)
+st.caption(f"Engine: {current_engine}")
 
 # --- 3. INPUTS ---
 col1, col2 = st.columns(2)
@@ -53,10 +72,9 @@ if st.button("GENERATE MY BITE"):
     if not (uploaded_file or text_items):
         st.warning("Upload a photo or type ingredients!")
     else:
-        with st.spinner("⚡ analyzing pantry & checking prices..."):
+        with st.spinner(f"⚡ Crunching with {current_engine}..."):
             
             # --- AGENTIC PROMPT FOR JSON OUTPUT ---
-            # We explicitly ask for JSON so we can separate missing ingredients programmatically
             prompt = f"""
             Act as an API. Analyze the inputs and return a JSON list of exactly 3 recipes.
             
@@ -113,7 +131,6 @@ if st.button("GENERATE MY BITE"):
 
                 # --- SMART SHOPPING CART ---
                 if cart_items:
-                    # Deduplicate items
                     unique_cart = list(set(cart_items))
                     
                     st.divider()
@@ -126,7 +143,7 @@ if st.button("GENERATE MY BITE"):
                         st.button("Checkout / Save List")
 
             except Exception as e:
-                st.error(f"Oof! The AI got confused. Try again. Error: {e}")
+                st.error(f"Generation Error: {e}")
 
 st.divider()
 st.center = st.write("Made with ❤️ for Food x AI - Abhinav")
